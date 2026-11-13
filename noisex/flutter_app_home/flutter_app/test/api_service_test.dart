@@ -4,19 +4,24 @@ import 'package:noisex/models/constants.dart';
 void main() {
   group('ApiService', () {
     // 期望值统一从 Constants 派生（地址只单源定义在 constants.dart）。
-    // 2026-11-06 起正式入口走 HTTPS 域名：锁死 https/wss 两个协议，防止明文地址回流进上架包。
-    test('API base URL is https scheme without explicit port', () {
-      expect(Constants.apiBaseUrl, startsWith('https://'));
-      expect(Uri.parse(Constants.apiBaseUrl).hasPort, isFalse);
+    // 开源默认指向本机自建后端（http://10.0.2.2:7070，见 constants.dart 注释），
+    // 原上架口径「锁死 https/wss 且不带端口」随开源放宽；保留的不变量是：
+    // WS 与 API 同域同端口、协议跟随（http↔ws / https↔wss）——
+    // 开发者换成自己的 https 域名后，这条契约依然守住「WS 不掉回明文/密文错配」。
+    test('API base URL is a well-formed http(s) URL with a host', () {
+      final api = Uri.parse(Constants.apiBaseUrl);
+      expect(api.scheme, anyOf(equals('http'), equals('https')));
+      expect(api.host, isNotEmpty);
     });
 
-    test('WebSocket URL is wss on the same host as API base URL', () {
+    test('WebSocket URL follows API scheme on the same host and port', () {
       final api = Uri.parse(Constants.apiBaseUrl);
       final ws = Uri.parse(Constants.wsUrl);
-      expect(ws.scheme, equals('wss'));
+      // 协议跟随：https 配 wss、http 配 ws，不许密文 API 配明文 WS 或反之
+      expect(ws.scheme, equals(api.scheme == 'https' ? 'wss' : 'ws'));
       expect(ws.host, equals(api.host));
-      // 两者都不写端口、走 TLS 默认 443（Dart 的 Uri 不认 wss 默认端口，比 hasPort 不比 port 数值）
-      expect(ws.hasPort, isFalse);
+      // 同域同端口（REST 与 WebSocket 一并反代）；Dart Uri 未写端口时返回协议默认值，两边一致即同域
+      expect(ws.port, equals(api.port));
       expect(ws.path, equals('/ws'));
     });
 
