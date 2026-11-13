@@ -1,0 +1,40 @@
+# Build outputs
+noisex/java_server/target/
+noisex/harmonyos_app/noisex/entry/build/
+noisex/harmonyos_app/noisex/build/
+noisex/harmonyos_app/noisex/.preview/
+noisex/harmonyos_app/noisex/oh_modules/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment / Secrets
+.env
+*.env.local
+noisex/java_server/.env
+noisex/java_server/nginx/ssl/*.pem
+noisex/java_server/nginx/ssl/*.key
+noisex/java_server/nginx/ssl/*.p7b
+noisex/java_server/nginx/ssl/*.cer
+noisex/java_server/nginx/ssl/*.p12
+
+# Logs
+*.log
+
+# Node
+node_modules/
+dist/
+
+# Claude Code
+.claude/
+
+# Test artifacts
+out_test/
+.video_agent/
+out/

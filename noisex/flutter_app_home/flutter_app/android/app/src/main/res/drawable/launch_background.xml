@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 启动画面：对齐鸿蒙端 startWindow（#0A0A0F 背景 + 居中小图标 120px ≈ TP 130px）。
+     注：API 31+ 系统启动画面阶段由 values-v31 接管（透明图标=纯暗底），
+     本 windowBackground 在系统画面之后、Flutter 首帧之前显示。 -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launch_bg" />
+    <item>
+        <bitmap
+            android:gravity="center"
+            android:src="@drawable/launch_image_small" />
+    </item>
+</layer-list>

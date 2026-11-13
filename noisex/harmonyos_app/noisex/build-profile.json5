@@ -1,0 +1,101 @@
+{
+  "app": {
+    // 手动双签名方案（参考 lingdongyaohe/SmartMedicineBox 定稿模式）：
+    // 同一 p12 密钥库（subtracker.p12），区别在 AGC 签发的证书与 Profile。
+    // 本 hvigor 版本不支持按构建模式自动匹配签名，也不支持只配模式不绑定
+    // （那样会直接不签名），所以走双 product 绑定，打包时用 -p product= 选择：
+    //   调试装机：hvigorw assembleHap -p product=default（默认，debug 签名）
+    //   发布上架：hvigorw assembleHap -p product=release -p buildMode=release
+    //
+    // ⚠️ keyAlias / keyPassword / storePassword 三项是 DevEco 加密串（0000001B
+    //    开头），只存在于本工作区文件，永不入库：仓库版已剥离为 TODO 占位，
+    //    并用 git update-index --skip-worktree build-profile.json5 固化本地
+    //    真身（改动不会被误提交；需改结构时先 --no-skip-worktree，处理完再
+    //    恢复）。完整备份：harmonyoskeys/shouyigongfang20260924/subtracker/
+    //    NoiseX20261102/build-profile.native.json5.local
+    //
+    // ⚠️ 当前两份 p7b（2026-11-02 生成）allowed-acls 为空，未携带「代理提醒」
+    //    权益（AGC 审批未下）。NoiseX 现有代码未调用 reminderAgentManager，
+    //    暂不受影响；日后接入代理提醒时须先在 AGC 重新生成 Profile 并覆盖
+    //    同名文件，否则发布构建报 1700002。
+    "signingConfigs": [
+      {
+        "name": "debug",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/subtracker.p12",
+          "storePassword": "0000001BC4C7FEA2757615D6AD1EBA12FCB5EE96F49396236B1CAD6A6D17C0835D248A4B51C0624655C44D",
+          "keyAlias": "subtracker",
+          "keyPassword": "0000001BE9EB70C6614523373D3115DB59A78E774662FD963CF90A66183694992876FAB0012024CA165E8D",
+          "signAlg": "SHA256withECDSA",
+          "profile": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/NoiseX20261102/NoiseX_debugDebug.p7b",
+          "certpath": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/subtracker_debug.cer"
+        }
+      },
+      {
+        "name": "release",
+        "type": "HarmonyOS",
+        "material": {
+          "storeFile": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/subtracker.p12",
+          "storePassword": "0000001B701AAEFC2F05FF44D4B6D130FE5EA42A515839F5D5CD421F3AC1C978E4B88EDB8F76A89BE0DBF7",
+          "keyAlias": "subtracker",
+          "keyPassword": "0000001B82A04BF7EE7F0C3C910658D2A39AF0515E8B923A4024E2924041E0FDA2B1C5938433CFDF2DF829",
+          "signAlg": "SHA256withECDSA",
+          "profile": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/NoiseX20261102/NoiseX_releaseRelease.p7b",
+          "certpath": "E:/claudecode/harmonyoskeys/shouyigongfang20260924/subtracker/subtracker_release.cer"
+        }
+      }
+    ],
+    "products": [
+      {
+        "name": "default",
+        "signingConfig": "debug",
+        "targetSdkVersion": "26.0.0",
+        "compatibleSdkVersion": "6.0.0(20)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      },
+      {
+        "name": "release",
+        "signingConfig": "release",
+        "targetSdkVersion": "26.0.0",
+        "compatibleSdkVersion": "6.0.0(20)",
+        "runtimeOS": "HarmonyOS",
+        "buildOption": {
+          "strictMode": {
+            "caseSensitiveCheck": true,
+            "useNormalizedOHMUrl": true
+          }
+        }
+      }
+    ],
+    "buildModeSet": [
+      {
+        "name": "debug",
+      },
+      {
+        "name": "release"
+      }
+    ]
+  },
+  "modules": [
+    {
+      "name": "entry",
+      "srcPath": "./entry",
+      "targets": [
+        {
+          "name": "default",
+          "applyToProducts": [
+            "default",
+            "release"
+          ]
+        }
+      ]
+    }
+  ]
+}

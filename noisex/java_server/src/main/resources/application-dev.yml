@@ -1,0 +1,41 @@
+server:
+  port: 7070
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+
+noisex:
+  jwt:
+    secret: ${JWT_SECRET:ZGV2LW1vZGUtc2VjcmV0LWtleS1mb3Itbm9pc2V4LXRlc3Rpbmctb25seQ==}
+    expiration: 86400000
+  push:
+    enabled: ${PUSH_ENABLED:true}
+    # 2026-11-04 密钥纪律整改（勿回退）：Client Secret 曾以默认值形式明文提交入库
+    # （commit 3b88988，已推远端），已全部改环境变量注入并建议 AGC 侧重置作废。
+    # 2026-11-05 鸿蒙 v3 鉴权改服务账号密钥自签 JWT（PS256），与 client_credentials 无关
+    project-id: ${PUSH_PROJECT_ID:}
+    ohos:
+      service-account-key-file: ${PUSH_SERVICE_ACCOUNT_KEY_FILE:}
+    category: ${PUSH_CATEGORY:IM}
+    # 本地/联调默认走测试消息通道，不受频控
+    test-message: ${PUSH_TEST_MESSAGE:true}
+    # 安卓 HMS 通道（老 AGC 安卓应用 119063393）；Client ID 非机密，Secret 只从环境变量注入
+    android:
+      project-id: ${PUSH_ANDROID_PROJECT_ID:101653523865099678}
+      service-account-key-file: ${PUSH_ANDROID_SERVICE_ACCOUNT_KEY_FILE:}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    com.noisex: DEBUG

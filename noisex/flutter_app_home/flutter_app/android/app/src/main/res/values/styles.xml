@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 启动画面主题：对齐鸿蒙端 startWindow（#0A0A0F 背景 + 居中 startIcon）。
+         应用为全深色主题，浅色/深色模式统一使用同一套深色启动画面。 -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <!-- Show a splash screen on the activity. Automatically removed when
+             the Flutter engine draws its first frame -->
+        <item name="android:windowBackground">@drawable/launch_background</item>
+        <!-- 状态栏对齐鸿蒙端（2026-11-03 真机实测）。鸿蒙端内容色为主题橙
+             #FF6B35，Android 公开 API 只有亮/暗两档内容色（无自定义通道），
+             故底色对齐 + 白色内容，主视觉一致。
+             颜色用 #0E0E15 补偿：EMUI 对状态栏底色实测乘 0.7 压暗
+             （0E/0.7=0A, 15/0.7≈0F），最终显示恰为页面底色 #0A0A0F。 -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">#0E0E15</item>
+        <item name="android:navigationBarColor">#0E0E15</item>
+    </style>
+    <!-- Theme applied to the Android Window as soon as the process has started.
+         This theme determines the color of the Android Window while your
+         Flutter UI initializes, as well as behind your Flutter UI while its
+         running.
+
+         This Theme is only used starting with V2 of Flutter's Android embedding. -->
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/launch_bg</item>
+        <!-- 同 LaunchTheme：运行期状态栏/导航栏与暗色页面底融合（EMUI 0.7 压暗补偿） -->
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+        <item name="android:statusBarColor">#0E0E15</item>
+        <item name="android:navigationBarColor">#0E0E15</item>
+    </style>
+</resources>

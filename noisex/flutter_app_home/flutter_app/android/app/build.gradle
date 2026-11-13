@@ -1,0 +1,67 @@
+plugins {
+    id "com.android.application"
+    id "kotlin-android"
+    // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
+    id "dev.flutter.flutter-gradle-plugin"
+}
+
+android {
+    namespace = "com.llslsb.noisex"
+    compileSdk = flutter.compileSdkVersion
+    ndkVersion = flutter.ndkVersion
+
+    compileOptions {
+        // flutter_local_notifications 插件要求启用核心库脱糖（官方接入文档标配）
+        coreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        applicationId = "com.llslsb.noisex"
+        minSdk = flutter.minSdkVersion
+        targetSdk = flutter.targetSdkVersion
+        // 版本号单源 pubspec.yaml（version: 1.0.0+1000001），与 OHOS 端一致
+        versionCode = flutter.versionCode
+        versionName = flutter.versionName
+    }
+
+    // AGC 安卓应用上架签名（2026-11-03）：自有 keystore，密钥材料在
+    // android/key.properties（不入库，见 .gitignore）。keystore 丢失 =
+    // 该应用永远无法再更新，务必备份。
+    def keystoreProperties = new Properties()
+    def keystorePropertiesFile = rootProject.file("key.properties")
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.withInputStream { keystoreProperties.load(it) }
+    }
+
+    signingConfigs {
+        release {
+            keyAlias = keystoreProperties["keyAlias"]
+            keyPassword = keystoreProperties["keyPassword"]
+            storeFile = keystoreProperties["storeFile"] ? file(keystoreProperties["storeFile"]) : null
+            storePassword = keystoreProperties["storePassword"]
+        }
+    }
+
+    buildTypes {
+        release {
+            // AGC 上架要求正式发布签名（V1+V2 双签名由 apksigner 默认带上）
+            signingConfig = signingConfigs.release
+            // HMS 等可选依赖的 R8 缺类抑制规则（由 R8 missing_rules.txt 生成，2026-09-21）
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+}
+
+flutter {
+    source = "../.."
+}

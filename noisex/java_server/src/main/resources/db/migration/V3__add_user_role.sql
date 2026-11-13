@@ -1,0 +1,4 @@
+-- NoiseX V3: 用户角色字段
+-- 支持管理后台 RBAC：USER / ADMIN
+
+ALTER TABLE user_profile ADD COLUMN role VARCHAR(10) NOT NULL DEFAULT 'USER' COMMENT '角色(USER/ADMIN)' AFTER contact;

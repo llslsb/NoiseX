@@ -1,0 +1,106 @@
+services:
+  app:
+    build: .
+    ports:
+      - "7070:7070"
+    environment:
+      - SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE:-dev}
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_NAME=noisex
+      - DB_USERNAME=${DB_USERNAME:-noisex}
+      - DB_PASSWORD=${DB_PASSWORD:?请在 .env 设置 DB_PASSWORD}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      - JWT_SECRET=${JWT_SECRET}
+      - ENCRYPTION_KEY=${ENCRYPTION_KEY:-dev-encryption-key-change-in-prod-32bytes!!}
+      - WS_ALLOWED_ORIGINS=${WS_ALLOWED_ORIGINS:-*}
+      - PUSH_ENABLED=${PUSH_ENABLED:-true}
+      - PUSH_APP_ID=${PUSH_APP_ID:-6917605848400400489}
+      - PUSH_CLIENT_ID=${PUSH_CLIENT_ID:-6917605848400400489}
+      - PUSH_CLIENT_SECRET=${PUSH_CLIENT_SECRET:?请在 .env 设置 PUSH_CLIENT_SECRET}
+      - FCM_SERVICE_ACCOUNT_KEY=${FCM_SERVICE_ACCOUNT_KEY:-}
+      - FCM_PROJECT_ID=${FCM_PROJECT_ID:-}
+      - ADMIN_JWT_EXPIRATION=${ADMIN_JWT_EXPIRATION:-7200000}
+      - ADMIN_LOGIN_MAX_ATTEMPTS=${ADMIN_LOGIN_MAX_ATTEMPTS:-5}
+      - ADMIN_LOGIN_WINDOW_SECONDS=${ADMIN_LOGIN_WINDOW_SECONDS:-900}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:7070/actuator/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: always
+    networks:
+      - noisex-net
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=noisex
+      - MYSQL_USER=${DB_USERNAME:-noisex}
+      - MYSQL_PASSWORD=${DB_PASSWORD:?请在 .env 设置 DB_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:?请在 .env 设置 DB_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "${MYSQL_PORT:-3307}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD:?请在 .env 设置 DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+    networks:
+      - noisex-net
+
+  redis:
+    image: redis:7.0-alpine
+    command: redis-server --notify-keyspace-events Ex --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: always
+    networks:
+      - noisex-net
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx-local.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always
+    networks:
+      - noisex-net
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  noisex-net:
+    driver: bridge

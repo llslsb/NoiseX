@@ -1,0 +1,4 @@
+# agconnect-services.json 含 client_secret 字段（2026-11-05 核实：AGC 下载时"包含密钥"），
+# 严禁入库——文件由本地密钥目录 harmonyoskeys/.../NoiseX20261102/android/ 同步而来。
+# 若以后改用"不包含密钥"下载件（无 secret），可删除本条目后评估入库。
+agconnect-services.json

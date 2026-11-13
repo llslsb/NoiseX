@@ -1,0 +1,16 @@
+target/*
+!target/noisex-server-1.0.0.jar
+*.class
+*.log
+.idea/
+*.iml
+.git/
+.github/
+.env
+.env.*
+docker-compose.yml
+nginx/
+k8s/
+*.md
+.dockerignore
+Dockerfile

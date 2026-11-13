@@ -1,0 +1,12 @@
+{
+  "string": [
+    { "name": "module_desc", "value": "NoiseX - 遇见未知，不必算法" },
+    { "name": "EntryAbility_desc", "value": "NoiseX 匿名声呐社交" },
+    { "name": "EntryAbility_label", "value": "NoiseX" },
+    { "name": "app_name", "value": "NoiseX" },
+    { "name": "slogan", "value": "遇见未知，不必算法" },
+    { "name": "tagline_1", "value": "无算法 · 无推荐 · 无排序" },
+    { "name": "tagline_2", "value": "纯粹的随机与地理邻近" },
+    { "name": "location_reason", "value": "用于匹配附近的声呐信号，实现基于地理邻近的匿名社交" }
+  ]
+}

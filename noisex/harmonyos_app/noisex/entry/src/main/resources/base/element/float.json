@@ -1,0 +1,15 @@
+{
+  "float": [
+    { "name": "page_text_font_size", "value": "14fp" },
+    { "name": "title_font_size", "value": "24fp" },
+    { "name": "display_font_size", "value": "64fp" },
+    { "name": "small_font_size", "value": "12fp" },
+    { "name": "tiny_font_size", "value": "10fp" },
+    { "name": "pulse_button_size", "value": "160vp" },
+    { "name": "radar_size", "value": "320vp" },
+    { "name": "tab_bar_height", "value": "64vp" },
+    { "name": "chat_header_height", "value": "56vp" },
+    { "name": "input_height", "value": "40vp" },
+    { "name": "progress_bar_width", "value": "256vp" }
+  ]
+}

@@ -1,0 +1,21 @@
+package com.noisex.model.domain;
+
+import java.io.Serializable;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class SonarData implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String id;
+    private String userId;
+    private String content;
+    private String geohash;
+    private long timestamp;
+}

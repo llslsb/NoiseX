@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoiseX 管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0d0d14; color: #e0e0e0; min-height: 100vh; }
+
+    /* Login */
+    .login-wrap { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .login-card { background: #13131a; border: 1px solid #2a2a3a; border-radius: 12px; padding: 40px; width: 380px; }
+    .login-card h1 { text-align: center; font-size: 24px; color: #FF6B35; margin-bottom: 8px; }
+    .login-card p { text-align: center; font-size: 13px; color: #888; margin-bottom: 24px; }
+    .login-card input { width: 100%; padding: 12px 16px; background: #1a1a26; border: 1px solid #2a2a3a; border-radius: 8px; color: #e0e0e0; font-size: 14px; margin-bottom: 16px; outline: none; }
+    .login-card input:focus { border-color: #FF6B35; }
+    .login-card button { width: 100%; padding: 12px; background: #FF6B35; color: #fff; border: none; border-radius: 8px; font-size: 15px; cursor: pointer; font-weight: 600; }
+    .login-card button:hover { background: #e55a2b; }
+    .login-card .error { color: #ff4d4d; font-size: 13px; text-align: center; margin-top: 12px; min-height: 20px; }
+
+    /* Layout */
+    .app { display: none; }
+    .header { background: #13131a; border-bottom: 1px solid #2a2a3a; padding: 0 24px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .header h1 { font-size: 18px; color: #FF6B35; }
+    .header .user-info { font-size: 13px; color: #888; }
+    .header .user-info span { color: #FF6B35; }
+    .header button { background: none; border: 1px solid #2a2a3a; color: #888; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .header button:hover { border-color: #FF6B35; color: #FF6B35; }
+
+    .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 24px; background: #13131a; border-radius: 10px; padding: 4px; border: 1px solid #2a2a3a; }
+    .tab { padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; color: #888; border: none; background: none; }
+    .tab.active { background: #FF6B35; color: #fff; }
+    .tab:hover:not(.active) { color: #e0e0e0; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: #13131a; border: 1px solid #2a2a3a; border-radius: 10px; padding: 20px; }
+    .stat-card .label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+    .stat-card .value { font-size: 32px; font-weight: 700; color: #FF6B35; }
+    .stat-card .sub { font-size: 12px; color: #666; margin-top: 4px; }
+
+    /* Table */
+    .card { background: #13131a; border: 1px solid #2a2a3a; border-radius: 10px; overflow: hidden; }
+    .card-header { padding: 16px 20px; border-bottom: 1px solid #2a2a3a; display: flex; justify-content: space-between; align-items: center; }
+    .card-header h2 { font-size: 16px; }
+    .card-header .badge { background: #FF6B35; color: #fff; padding: 2px 10px; border-radius: 12px; font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { text-align: left; padding: 12px 16px; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #2a2a3a; background: #0f0f18; }
+    td { padding: 12px 16px; font-size: 14px; border-bottom: 1px solid #1a1a26; }
+    tr:hover td { background: #1a1a26; }
+    /* 长文本限宽省略：完整内容通过悬浮 title 查看 */
+    .cell-clip { display: inline-block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; }
+    td[title] { cursor: help; }
+    .status { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+    .status-pending { background: #3a2a0a; color: #f0a030; }
+    .status-reviewed { background: #0a2a1a; color: #30d080; }
+    .status-dismissed { background: #1a1a26; color: #888; }
+    .status-banned { background: #2a0a0a; color: #ff4d4d; }
+
+    /* Actions */
+    .actions { display: flex; gap: 6px; }
+    .btn { padding: 5px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 12px; font-weight: 600; }
+    .btn-approve { background: #0a2a1a; color: #30d080; }
+    .btn-approve:hover { background: #0f3a22; }
+    .btn-dismiss { background: #1a1a26; color: #888; }
+    .btn-dismiss:hover { background: #2a2a3a; }
+    .btn-ban { background: #2a0a0a; color: #ff4d4d; }
+    .btn-ban:hover { background: #3a0a0a; }
+    .btn-refresh { background: #1a1a26; color: #888; border: 1px solid #2a2a3a; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
+    .btn-refresh:hover { border-color: #FF6B35; color: #FF6B35; }
+
+    /* Empty */
+    .empty { text-align: center; padding: 48px; color: #666; }
+    .empty .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Loading */
+    .loading { text-align: center; padding: 48px; color: #666; }
+
+    /* Toast */
+    .toast { position: fixed; top: 72px; right: 24px; padding: 12px 20px; border-radius: 8px; font-size: 14px; z-index: 1000; opacity: 0; transition: opacity 0.3s; }
+    .toast.show { opacity: 1; }
+    .toast-success { background: #0a2a1a; color: #30d080; border: 1px solid #30d080; }
+    .toast-error { background: #2a0a0a; color: #ff4d4d; border: 1px solid #ff4d4d; }
+  </style>
+</head>
+<body>
+
+  <!-- Login -->
+  <div class="login-wrap" id="loginView">
+    <div class="login-card">
+      <h1>NoiseX</h1>
+      <p>管理后台 · 管理员账号登录</p>
+      <div style="text-align:center;color:#666;font-size:12px;margin-bottom:16px;line-height:1.5;">仅限官方人员使用；账号需关联 ROLE_ADMIN 权限</div>
+      <input type="text" id="usernameInput" placeholder="管理员用户名" autocomplete="username">
+      <input type="password" id="passwordInput" placeholder="管理员密码" autocomplete="current-password">
+      <button onclick="login()" id="loginBtn" style="width:100%;padding:12px;background:#FF6B35;color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;font-weight:600;">登录</button>
+      <div class="error" id="loginError"></div>
+    </div>
+  </div>
+
+  <!-- App -->
+  <div class="app" id="appView">
+    <div class="header">
+      <h1>NoiseX 管理后台</h1>
+      <div class="user-info">
+        <span id="userId"></span>
+        <button onclick="logout()" style="margin-left:12px;">退出</button>
+      </div>
+    </div>
+    <div class="main">
+      <div class="tabs">
+        <button class="tab active" onclick="switchTab('stats')">系统概览</button>
+        <button class="tab" onclick="switchTab('reports')">举报管理</button>
+      </div>
+
+      <!-- Stats -->
+      <div id="statsPanel">
+        <div class="stats-grid" id="statsGrid">
+          <div class="loading">加载中...</div>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div id="reportsPanel" style="display:none;">
+        <div class="card">
+          <div class="card-header">
+            <h2>举报列表</h2>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select id="reportStatus" onchange="loadReports()" style="background:#1a1a26;color:#e0e0e0;border:1px solid #2a2a3a;padding:6px 10px;border-radius:6px;font-size:13px;">
+                <option value="pending">待处理</option>
+                <option value="reviewed">已处理</option>
+                <option value="dismissed">已驳回</option>
+                <option value="banned">已封禁</option>
+              </select>
+              <button class="btn-refresh" onclick="loadReports()">刷新</button>
+            </div>
+          </div>
+          <div id="reportsContent">
+            <div class="loading">加载中...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const API_BASE = window.location.origin;
+    let token = sessionStorage.getItem('noisex_admin_token') || '';
+
+    // Auto-login if token exists
+    if (token) {
+      verifyAndShow();
+    }
+
+    function login() {
+      const username = document.getElementById('usernameInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const btn = document.getElementById('loginBtn');
+      if (!username || !password) {
+        document.getElementById('loginError').textContent = '请输入用户名和密码';
+        return;
+      }
+      btn.textContent = '登录中...';
+      btn.disabled = true;
+      document.getElementById('loginError').textContent = '';
+
+      fetch(API_BASE + '/api/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, password: password })
+      }).then(r => r.json()).then(res => {
+        if (res.code === 0 && res.data && res.data.token) {
+          token = res.data.token;
+          sessionStorage.setItem('noisex_admin_token', token);
+          document.getElementById('passwordInput').value = '';
+          verifyAndShow();
+        } else {
+          document.getElementById('loginError').textContent = res.message || '用户名或密码错误';
+        }
+      }).catch(() => {
+        document.getElementById('loginError').textContent = '无法连接服务器，请确认后端已启动';
+      }).finally(() => {
+        btn.textContent = '登录';
+        btn.disabled = false;
+      });
+    }
+
+    function verifyAndShow() {
+      fetch(API_BASE + '/api/admin/stats', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(r => {
+        if (r.ok) {
+          sessionStorage.setItem('noisex_admin_token', token);
+          document.getElementById('loginView').style.display = 'none';
+          document.getElementById('appView').style.display = 'block';
+          loadStats();
+        } else {
+          document.getElementById('loginError').textContent = r.status === 403 ? '登录已过期或无权限' : '登录已过期，请重新登录';
+          token = '';
+          sessionStorage.removeItem('noisex_admin_token');
+        }
+      }).catch(() => {
+        document.getElementById('loginError').textContent = '连接失败';
+      });
+    }
+
+    function logout() {
+      const oldToken = token;
+      token = '';
+      sessionStorage.removeItem('noisex_admin_token');
+      if (oldToken) {
+        fetch(API_BASE + '/api/auth/logout', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + oldToken }
+        }).catch(() => {});
+      }
+      document.getElementById('loginView').style.display = 'flex';
+      document.getElementById('appView').style.display = 'none';
+      document.getElementById('usernameInput').value = '';
+      document.getElementById('passwordInput').value = '';
+      document.getElementById('loginError').textContent = '';
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach((t, i) => {
+        t.classList.toggle('active', (tab === 'stats' && i === 0) || (tab === 'reports' && i === 1));
+      });
+      document.getElementById('statsPanel').style.display = tab === 'stats' ? 'block' : 'none';
+      document.getElementById('reportsPanel').style.display = tab === 'reports' ? 'block' : 'none';
+      if (tab === 'stats') loadStats();
+      if (tab === 'reports') loadReports();
+    }
+
+    function handleAuthFailure() {
+      token = '';
+      sessionStorage.removeItem('noisex_admin_token');
+      document.getElementById('loginView').style.display = 'flex';
+      document.getElementById('appView').style.display = 'none';
+      document.getElementById('loginError').textContent = '登录已过期或无权限，请重新登录';
+    }
+
+    // Stats
+    function loadStats() {
+      fetch(API_BASE + '/api/admin/stats', {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(r => {
+        if (r.status === 401 || r.status === 403) {
+          handleAuthFailure();
+          return null;
+        }
+        return r.json();
+      }).then(res => {
+        if (res === null) return;
+        if (res.code === 0) {
+          renderStats(res.data);
+        } else {
+          document.getElementById('statsGrid').innerHTML = '<div class="empty"><div class="icon">!</div>加载失败</div>';
+        }
+      }).catch(() => {
+        document.getElementById('statsGrid').innerHTML = '<div class="empty"><div class="icon">!</div>连接失败</div>';
+      });
+    }
+
+    function renderStats(d) {
+      document.getElementById('statsGrid').innerHTML = `
+        <div class="stat-card"><div class="label">在线用户</div><div class="value">${escapeHtml(d.onlineUsers)}</div></div>
+        <div class="stat-card"><div class="label">待处理举报</div><div class="value">${escapeHtml(d.pendingReports)}</div></div>
+        <div class="stat-card"><div class="label">活跃房间</div><div class="value">${escapeHtml(d.activeRooms)}</div></div>
+        <div class="stat-card"><div class="label">声呐发送</div><div class="value">${escapeHtml(d.sonarSentTotal)}</div><div class="sub">累计</div></div>
+        <div class="stat-card"><div class="label">声呐接受</div><div class="value">${escapeHtml(d.sonarAcceptedTotal)}</div><div class="sub">累计</div></div>
+        <div class="stat-card"><div class="label">房间创建</div><div class="value">${escapeHtml(d.roomCreatedTotal)}</div><div class="sub">累计</div></div>
+        <div class="stat-card"><div class="label">消息发送</div><div class="value">${escapeHtml(d.messageSentTotal)}</div><div class="sub">累计</div></div>
+      `;
+    }
+
+    // Reports
+    function loadReports() {
+      const status = document.getElementById('reportStatus').value;
+      fetch(API_BASE + '/api/admin/reports?status=' + status, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(r => {
+        if (r.status === 401 || r.status === 403) {
+          handleAuthFailure();
+          return null;
+        }
+        return r.json();
+      }).then(res => {
+        if (res === null) return;
+        if (res.code === 0) {
+          renderReports(res.data);
+        } else {
+          document.getElementById('reportsContent').innerHTML = '<div class="empty">加载失败</div>';
+        }
+      }).catch(() => {
+        document.getElementById('reportsContent').innerHTML = '<div class="empty">连接失败</div>';
+      });
+    }
+
+    function escapeHtml(value) {
+      if (value === null || value === undefined) return '-';
+      return String(value).replace(/[&<>"']/g, function(ch) {
+        return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[ch];
+      });
+    }
+
+    function renderReports(list) {
+      if (!list || list.length === 0) {
+        document.getElementById('reportsContent').innerHTML = '<div class="empty"><div class="icon">0</div>暂无举报</div>';
+        return;
+      }
+      let html = '<table><thead><tr><th>ID</th><th>举报人</th><th>房间</th><th>原因</th><th>手机号</th><th>状态</th><th>时间</th><th>操作</th></tr></thead><tbody>';
+      list.forEach(r => {
+        const reportId = escapeHtml(r.id);
+        // 截断展示 + title 悬浮看全文：完整 ID 可读、长原因不撑破表格
+        const reporterId = r.reporterId ? escapeHtml(r.reporterId.substring(0, 12) + '…') : '-';
+        const roomId = r.roomId ? escapeHtml(r.roomId.substring(0, 12) + '…') : '-';
+        const statusClass = 'status-' + escapeHtml(r.status);
+        const statusText = escapeHtml({ pending: '待处理', reviewed: '已处理', dismissed: '已驳回', banned: '已封禁' }[r.status] || r.status);
+        const time = r.createdAt ? escapeHtml(new Date(r.createdAt).toLocaleString('zh-CN')) : '-';
+        const isPending = r.status === 'pending';
+        html += `<tr>
+          <td style="font-family:monospace;font-size:12px;" title="${escapeHtml(r.id)}">${reportId}</td>
+          <td style="font-family:monospace;font-size:12px;" title="${r.reporterId ? escapeHtml(r.reporterId) : ''}">${reporterId}</td>
+          <td style="font-family:monospace;font-size:12px;" title="${r.roomId ? escapeHtml(r.roomId) : ''}">${roomId}</td>
+          <td><span class="cell-clip" title="${escapeHtml(r.reason)}">${escapeHtml(r.reason)}</span></td>
+          <td>${escapeHtml(r.phoneNumber)}</td>
+          <td><span class="status ${statusClass}">${statusText}</span></td>
+          <td style="font-size:12px;">${time}</td>
+          <td>${isPending ? `<div class="actions">
+            <button class="btn btn-approve" onclick="reviewReport('${reportId}','reviewed')">处理</button>
+            <button class="btn btn-dismiss" onclick="reviewReport('${reportId}','dismissed')">驳回</button>
+            <button class="btn btn-ban" onclick="reviewReport('${reportId}','banned')">封禁</button>
+          </div>` : '-'}</td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('reportsContent').innerHTML = html;
+    }
+
+    function reviewReport(reportId, action) {
+      fetch(API_BASE + '/api/admin/reports/' + reportId + '/review', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: action })
+      }).then(r => {
+        if (r.status === 401 || r.status === 403) {
+          handleAuthFailure();
+          return null;
+        }
+        return r.json();
+      }).then(res => {
+        if (res === null) return;
+        if (res.code === 0) {
+          const actionText = { reviewed: '已处理', dismissed: '已驳回', banned: '已封禁' }[action];
+          showToast('操作成功：' + actionText, 'success');
+          loadReports();
+          loadStats();
+        } else {
+          showToast('操作失败：' + (res.message || '未知错误'), 'error');
+        }
+      }).catch(() => {
+        showToast('网络错误', 'error');
+      });
+    }
+
+    // Toast
+    function showToast(msg, type) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast toast-' + type + ' show';
+      setTimeout(() => { el.className = 'toast'; }, 3000);
+    }
+
+    // Enter key on login
+    document.getElementById('usernameInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') login();
+    });
+    document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') login();
+    });
+  </script>
+</body>
+</html>
